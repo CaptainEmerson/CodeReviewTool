@@ -1,0 +1,219 @@
+package org.eclipse.compare.codereview.refactorChange;
+
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.jface.dialogs.IDialogSettings;
+import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.wizard.IWizardContainer;
+import org.eclipse.ui.IWorkbench;
+import org.eclipse.ui.IWorkbenchWizard;
+import org.eclipse.ltk.core.refactoring.RefactoringCore;
+import org.eclipse.ltk.core.refactoring.RefactoringDescriptor;
+import org.eclipse.ltk.core.refactoring.RefactoringDescriptorProxy;
+import org.eclipse.ltk.core.refactoring.history.RefactoringHistory;
+import org.eclipse.ltk.internal.ui.refactoring.RefactoringPluginImages;
+import org.eclipse.ltk.internal.ui.refactoring.RefactoringUIPlugin;
+import org.eclipse.ltk.internal.ui.refactoring.scripting.ApplyRefactoringScriptWizardPage;
+import org.eclipse.ltk.internal.ui.refactoring.scripting.ScriptingMessages;
+import org.eclipse.ltk.ui.refactoring.history.RefactoringHistoryControlConfiguration;
+
+import org.eclipse.compare.codereview.refactorChange.RefactoringHistoryWizard;
+
+/**
+ * Wizard to apply a refactoring script.
+ *
+ */
+public final class ApplyRefactoringScriptWizard extends RefactoringHistoryWizard implements IWorkbenchWizard {
+
+	/** Proxy which encapsulates a refactoring history */
+	private final class RefactoringHistoryProxy extends RefactoringHistory {
+
+		/**
+		 * {@inheritDoc}
+		 */
+		public RefactoringDescriptorProxy[] getDescriptors() {
+			if (fRefactoringHistory != null)
+				return fRefactoringHistory.getDescriptors();
+			return new RefactoringDescriptorProxy[0];
+		}
+
+		/**
+		 * {@inheritDoc}
+		 */
+		public boolean isEmpty() {
+			final RefactoringDescriptorProxy[] proxies= getDescriptors();
+			if (proxies != null)
+				return proxies.length == 0;
+			return true;
+		}
+
+		/**
+		 * {@inheritDoc}
+		 */
+		public RefactoringHistory removeAll(final RefactoringHistory history) {
+			throw new UnsupportedOperationException();
+		}
+	}
+
+	/** The dialog settings key */
+	/*private static String DIALOG_SETTINGS_KEY= "ApplyRefactoringScriptWizard"; //$NON-NLS-1$
+*/
+	/** Has the wizard new dialog settings? */
+	/*private boolean fNewSettings;*/
+
+	/** The refactoring history, or <code>null</code> */
+	private RefactoringHistory fRefactoringHistory= null;
+
+	/** The location of the refactoring script file, or <code>null</code> */
+	private URI fScriptLocation= null;
+
+	/** The apply script wizard page */
+	/*private ApplyRefactoringScriptWizardPage fWizardPage;*/
+
+	/**
+	 * Creates a new apply refactoring script wizard.
+	 */
+	public ApplyRefactoringScriptWizard(File file) {
+		super();
+		if (!file.exists()) {
+			/*setErrorMessage(ScriptingMessages.ApplyRefactoringScriptWizardPage_invalid_script_file);*/
+			return;
+		}
+		
+		InputStream stream= null;
+		try {
+			stream= new BufferedInputStream(new FileInputStream(file));
+			setRefactoringHistory(RefactoringCore.getHistoryService().readRefactoringHistory(stream, RefactoringDescriptor.NONE));
+		} catch (IOException exception) {
+			/*setErrorMessage(ScriptingMessages.ApplyRefactoringScriptWizardPage_error_cannot_read);*/
+			return;
+		} catch (CoreException exception) {
+			/*setErrorMessage(ScriptingMessages.ApplyRefactoringScriptWizardPage_invalid_format);*/
+			return;
+		} finally {
+			if (stream != null) {
+				try {
+					stream.close();
+				} catch (IOException exception) {
+					// Do nothing
+				}
+			}
+		}
+		
+		setInput(new RefactoringHistoryProxy());
+		setDefaultPageImageDescriptor(RefactoringPluginImages.DESC_WIZBAN_APPLY_SCRIPT);
+		final IDialogSettings settings= RefactoringUIPlugin.getDefault().getDialogSettings();
+		/*final IDialogSettings section= settings.getSection(DIALOG_SETTINGS_KEY);
+		if (section == null)
+			fNewSettings= true;
+		else {
+			fNewSettings= false;
+			setDialogSettings(section);
+		}*/
+		setConfiguration(new RefactoringHistoryControlConfiguration(null, false, false) {
+
+			public String getProjectPattern() {
+				return ScriptingMessages.ApplyRefactoringScriptWizard_project_pattern;
+			}
+
+			public String getWorkspaceCaption() {
+				return ScriptingMessages.ApplyRefactoringScriptWizard_workspace_caption;
+			}
+		});
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	/*protected void addUserDefinedPages() {
+		fWizardPage= new ApplyRefactoringScriptWizardPage(this);
+		addPage(fWizardPage);
+	}*/
+
+	/**
+	 * {@inheritDoc}
+	 */
+	/*public boolean canFinish() {
+		return super.canFinish() && fRefactoringHistory != null;
+	}*/
+
+	/**
+	 * Returns the refactoring history to apply.
+	 *
+	 * @return the refactoring history to apply, or <code>null</code>
+	 */
+	public RefactoringHistory getRefactoringHistory() {
+		return fRefactoringHistory;
+	}
+
+	/**
+	 * Returns the location of the refactoring script.
+	 *
+	 * @return the location of the script, or <code>null</code>
+	 */
+	public URI getRefactoringScript() {
+		return fScriptLocation;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public void init(final IWorkbench workbench, final IStructuredSelection selection) {
+		if (selection != null && selection.size() == 1) {
+			final Object element= selection.getFirstElement();
+			if (element instanceof IFile) {
+				final IFile file= (IFile) element;
+				if (ScriptingMessages.CreateRefactoringScriptWizardPage_script_extension.equals(file.getFileExtension()))
+					fScriptLocation= file.getRawLocationURI();
+			}
+		}
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public boolean performFinish() {
+		/*if (fNewSettings) {
+			final IDialogSettings settings= RefactoringUIPlugin.getDefault().getDialogSettings();
+			IDialogSettings section= settings.getSection(DIALOG_SETTINGS_KEY);
+			section= settings.addNewSection(DIALOG_SETTINGS_KEY);
+			setDialogSettings(section);
+		}
+		fWizardPage.performFinish();*/
+		return super.performFinish();
+	}
+
+	/**
+	 * Sets the refactoring history to apply.
+	 *
+	 * @param history
+	 *            the refactoring history to apply, or <code>null</code>
+	 */
+	public void setRefactoringHistory(final RefactoringHistory history) {
+		fRefactoringHistory= history;
+		/*final IWizardContainer wizard= getContainer();
+		if (wizard.getCurrentPage() != null)
+			wizard.updateButtons();*/
+	}
+
+	/**
+	 * Sets the location of the refactoring script.
+	 *
+	 * @param uri
+	 *            the location of the script, or <code>null</code>
+	 */
+	public void setRefactoringScript(final URI uri) {
+		fScriptLocation= uri;
+		final IWizardContainer wizard= getContainer();
+		if (wizard.getCurrentPage() != null)
+			wizard.updateButtons();
+	}
+}
+
