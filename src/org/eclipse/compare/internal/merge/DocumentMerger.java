@@ -70,6 +70,9 @@ public class DocumentMerger {
 	/** Subset of above: just real differences. */
 	private ArrayList fChangeDiffs;
 	
+	private ArrayList fDefaultChangeDiffs;
+	private ArrayList fRefacChangeDiffs;
+	
 	private DocumentMerger InmRefacMerger;
 
 	private final boolean fLeftIsLocal;
@@ -134,6 +137,18 @@ public class DocumentMerger {
 			fRightPos= createPosition(rightDoc, rRange, rightStart, rightEnd);
 			if (ancestorDoc != null)
 				fAncestorPos= createPosition(ancestorDoc, aRange, ancestorStart, ancestorEnd);
+		}
+		
+		Diff(Diff copyDiff) {
+			this.fAncestorPos = copyDiff.fAncestorPos;
+			this.fDiffs = copyDiff.fDiffs;
+			this.fDirection = copyDiff.fDirection;
+			this.fIsToken = copyDiff.isToken();
+			this.fIsWhitespace = copyDiff.fIsWhitespace;
+			this.fLeftPos = copyDiff.fLeftPos;
+			this.fParent = this;
+			this.fResolved = copyDiff.fResolved;
+			this.fRightPos = copyDiff.fRightPos;
 		}
 		
 		public Position getPosition(char type) {
@@ -568,6 +583,73 @@ public class DocumentMerger {
 			}
 		}
 		fAllDiffs = newAllDiffs;
+		fDefaultChangeDiffs = fChangeDiffs;
+		if(InmRefacMerger!=null){
+			fRefacChangeDiffs = calculateNewChangedDiffsAfterRefac(fChangeDiffs, InmRefacMerger.changesIterator());
+		}
+		else
+			fRefacChangeDiffs = null;
+		
+	}
+
+	private ArrayList calculateNewChangedDiffsAfterRefac(
+			ArrayList fChangeDiffs, Iterator changesIterator) {
+		ArrayList refacChangeDiffs = new ArrayList<Diff>();
+		if(InmRefacMerger.hasChanges()){
+			for (Iterator iterator = InmRefacMerger.changesIterator(); iterator.hasNext();) {
+				final Diff d = (Diff) iterator.next();
+				final char contributor = MergeViewerContentProvider.RIGHT_CONTRIBUTOR;
+				Diff match = null;
+				for (Iterator iterator2 = fChangeDiffs.iterator(); iterator2.hasNext();) {
+					Diff diff = (Diff) iterator2.next();
+					IRegion tmpRegion = new IRegion() {
+						
+						public int getOffset() {
+							return d.getPosition(contributor).getOffset();
+						}
+						
+						public int getLength() {
+							return  d.getPosition(contributor).getLength();
+						}
+					};
+					if (diff.intersectsRegion(contributor, tmpRegion)) {
+						match = diff;
+						break;
+					}
+				}
+				Diff newDiff = new Diff(match);
+				newDiff.fRightPos = d.fRightPos;
+				newDiff.fAncestorPos = d.fAncestorPos;
+				ArrayList<Diff> newChildList = new ArrayList<DocumentMerger.Diff>(); 
+				for (Iterator iterator2 = d.childIterator(); iterator2
+						.hasNext();) {
+					final Diff cDiff = (Diff) iterator2.next();
+					IRegion tmpRegion = new IRegion() {
+
+						public int getOffset() {
+							return cDiff.getPosition(contributor).getOffset();
+						}
+
+						public int getLength() {
+							return cDiff.getPosition(contributor).getLength();
+						}
+					};
+					Diff[] changeDiffs = newDiff.getChangeDiffs(contributor,
+							tmpRegion);
+					if (changeDiffs.length > 0) {
+						Diff newCDiff = new Diff(changeDiffs[0]);
+						newCDiff.fParent = newDiff;
+						newCDiff.fRightPos = cDiff.fRightPos;
+						newCDiff.fAncestorPos = cDiff.fAncestorPos;
+						newChildList.add(newCDiff);
+					}
+				}
+				newDiff.fDiffs = newChildList;
+				refacChangeDiffs.add(newDiff);
+			}
+			System.out.println();
+		}
+		return refacChangeDiffs;
 	}
 
 	private boolean isCapped(DocLineComparator ancestor,
@@ -692,7 +774,7 @@ public class DocumentMerger {
 	}
 	
 	private boolean isIgnoreRefactorChanges() {
-		return  EditorsUI.getPreferenceStore().getBoolean(IgnoreRefactorChangesAction.PREFERENCE_IGNORE_REFACTOR_CHANGES);
+		return  ((InmRefacMerger!=null) && EditorsUI.getPreferenceStore().getBoolean(IgnoreRefactorChangesAction.PREFERENCE_IGNORE_REFACTOR_CHANGES));
 	}
 
 	private ICompareFilter[] getCompareFilters() {
@@ -1053,6 +1135,8 @@ public class DocumentMerger {
 	public void reset() {
 		fChangeDiffs= null;
 		fAllDiffs= null;
+		/*fDefaultChangeDiffs = null;
+		fRefacChangeDiffs = null;*/
 	}
 	
 	/**
@@ -1420,6 +1504,22 @@ public class DocumentMerger {
 			}
 		}
 		return null;
+	}
+
+	public boolean toggleDiffValues() {
+		if(isIgnoreRefactorChanges()){
+			if(fRefacChangeDiffs!=null){
+				fChangeDiffs = fRefacChangeDiffs;
+				return true;
+			}
+		}
+		else {
+			if(fDefaultChangeDiffs!=null){
+				fChangeDiffs = fDefaultChangeDiffs;
+				return false;
+			}
+		}
+		return false;
 	}
 	
 }

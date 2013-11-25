@@ -31,10 +31,11 @@ public class IgnoreRefactorChangesAction extends TextEditorPropertyAction {
 
 	public static final String IGNORE_REFACTOR_CHANGES = "org.eclipse.compare.ignoreRefactorChanges";
 	public static final String PREFERENCE_IGNORE_REFACTOR_CHANGES = "ignoreRefactorChanges";
+	private IPreferenceStore fStore = EditorsUI.getPreferenceStore();
 
-	public IgnoreRefactorChangesAction(MergeSourceViewer[] viewers, boolean[] needsPainters) {
+	public IgnoreRefactorChangesAction(MergeSourceViewer[] viewers) {
 		super(CompareMessages.IgnoreRefactorChangesAction_0, viewers, PREFERENCE_IGNORE_REFACTOR_CHANGES);
-		synchronizeWithPreference();		
+		synchronizeWithPreference();	
 	}
 	
 	/*
@@ -42,16 +43,15 @@ public class IgnoreRefactorChangesAction extends TextEditorPropertyAction {
 	 * @see org.eclipse.compare.internal.TextEditorPropertyAction#synchronizeWithPreference()
 	 */
 	protected void synchronizeWithPreference() {
-		/*MessageBox msg = new MessageBox(new Shell());
-		msg.setMessage("hello");
-		msg.open();*/
 		boolean checked = false;
+		
+		if (fStore != null) {
+			checked = fStore.getBoolean(getPreferenceKey());
+		}
 		
 		if (checked != isChecked()) {
 			if (toggleState(checked))
 				setChecked(checked);
-		} else if (checked) {
-			// TODO
 		}
 	}
 
@@ -61,22 +61,17 @@ public class IgnoreRefactorChangesAction extends TextEditorPropertyAction {
 	 */
 	public void propertyChange(PropertyChangeEvent event) {
 		String property = event.getProperty();
-		if (property.equals(getPreferenceKey()) || AbstractTextEditor.PREFERENCE_SHOW_LEADING_SPACES.equals(property) || AbstractTextEditor.PREFERENCE_SHOW_ENCLOSED_SPACES.equals(property)
-				|| AbstractTextEditor.PREFERENCE_SHOW_TRAILING_SPACES.equals(property) || AbstractTextEditor.PREFERENCE_SHOW_LEADING_IDEOGRAPHIC_SPACES.equals(property)
-				|| AbstractTextEditor.PREFERENCE_SHOW_ENCLOSED_IDEOGRAPHIC_SPACES.equals(property) || AbstractTextEditor.PREFERENCE_SHOW_TRAILING_IDEOGRAPHIC_SPACES.equals(property)
-				|| AbstractTextEditor.PREFERENCE_SHOW_LEADING_TABS.equals(property) || AbstractTextEditor.PREFERENCE_SHOW_ENCLOSED_TABS.equals(property)
-				|| AbstractTextEditor.PREFERENCE_SHOW_TRAILING_TABS.equals(property) || AbstractTextEditor.PREFERENCE_SHOW_CARRIAGE_RETURN.equals(property)
-				|| AbstractTextEditor.PREFERENCE_SHOW_LINE_FEED.equals(property) || AbstractTextEditor.PREFERENCE_WHITESPACE_CHARACTER_ALPHA_VALUE.equals(property)) {
+		if (property.equals(getPreferenceKey())) {
 			synchronizeWithPreference();
 		}
 	}
 
 	protected boolean toggleState(boolean checked) {
-		if (checked) {
-			// TODO
+		/*if (checked) {
+			System.out.println("Ignore Refactoring Changes");
 		} else {
-			// TODO
-		}
+			System.out.println("Don't Ignore Refactoring Changes");
+		}*/
 		return true;
 	}
 		

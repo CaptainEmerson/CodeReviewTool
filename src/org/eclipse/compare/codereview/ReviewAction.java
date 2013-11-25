@@ -258,6 +258,15 @@ public class ReviewAction extends BaseReviewAction implements IObjectActionDeleg
 								WriteRenameChangeRelationFile(relationFilePath, renameChangeRelationList);
 								
 								monitor.worked(50);
+								
+								/*IManualRefactoringInterface manInt = ServiceLocator.ResolveType
+										(IManualRefactoringInterface.class);
+										manInt.startRefactoringDetection(newProject, finalPrj, 
+										new IManualRefactoringCallback() {
+										public void callBack(Collection<IManualRefactoringInfo> results) {
+										// use results to hide manual refactoring
+										}
+										});*/
 															
 								try {
 									Thread.sleep(500);

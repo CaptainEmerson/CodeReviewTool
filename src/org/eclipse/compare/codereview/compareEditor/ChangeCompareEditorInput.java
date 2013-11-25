@@ -70,10 +70,10 @@ public class ChangeCompareEditorInput extends CompareEditorInput {
 	}
 
 	private ICompareInput createCompareInput() {
-		/*DiffNode input = new DiffNode(left,right);
-		return input;*/
+		DiffNode input = new DiffNode(Differencer.CHANGE, null, left, right);
+		return input;
 		
-		Differencer d = new Differencer();
+		/*Differencer d = new Differencer();
 		Object diff = d.findDifferences(false, new NullProgressMonitor(), null,
 				null, left, right);
 		
@@ -81,13 +81,16 @@ public class ChangeCompareEditorInput extends CompareEditorInput {
 		
 		input.setKind(Differencer.CHANGE);
 		
-		return input;
+		return input;*/
 	}
 
 	private void initLabels(ICompareInput input) {
 		CompareConfiguration cc = getCompareConfiguration();
 		if (getLeft() != null) {
-			cc.setLeftLabel("Local Revision : " + getLeft().getName());
+			if(getLeft().getName().equals("New File Added"))
+				cc.setLeftLabel("No History :: " + getLeft().getName());
+			else 
+				cc.setLeftLabel("Local Revision : " + getLeft().getName());
 		}
 		if (getRight() != null) {
 			cc.setRightLabel("Local : " + getRight().getName());
@@ -102,9 +105,9 @@ public class ChangeCompareEditorInput extends CompareEditorInput {
 	 * @see org.eclipse.compare.CompareEditorInput#getToolTipText()
 	 */
 	public String getToolTipText() {
-		String leftFile = ((Input) left).getFile().toString();
-		String rightFile = ((Input) right).getFile().toString();
-		return "Compare Current " + leftFile + "and Revision " + rightFile; 
+		String leftFile = (((Input) left).getFile()== null) ? "New File Added" : ((Input) left).getFile().toString();
+		String rightFile = (((Input) right).getFile()== null) ? "New File Added" : ((Input) right).getFile().toString();
+		return "Compare Revision " + leftFile + "and Current " + rightFile; 
 	}
 	
 	/* (non-Javadoc)
@@ -113,7 +116,13 @@ public class ChangeCompareEditorInput extends CompareEditorInput {
 	public String getTitle() {
 		String leftFile = ((Input) left).getName();
 		String rightFile = ((Input) right).getName();
-		return "Compare Current " + leftFile + " and Revision " + rightFile; 
+		if(leftFile.equals("New File Added")){
+			return leftFile + " : " + rightFile; 
+		}
+		else {
+			return "Compare Revision " + leftFile + " and Current " + rightFile; 
+		}
+		
 	}
 
 	/* (non-Javadoc)

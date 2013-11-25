@@ -3736,10 +3736,13 @@ public class TextMergeViewer extends ContentMergeViewer implements IAdaptable {
 		fHandlerService.registerAction(showWhitespaceAction, ITextEditorActionDefinitionIds.SHOW_WHITESPACE_CHARACTERS);
 		
 		ignoreRefactorChangesAction = new IgnoreRefactorChangesAction(
-				new MergeSourceViewer[] {fLeft, fRight, fAncestor},
-				new boolean[] {needsLeftPainter, needsRightPainter, needsAncestorPainter });
+				new MergeSourceViewer[] {fLeft, fRight, fAncestor});
 		fHandlerService.registerAction(ignoreRefactorChangesAction, IgnoreRefactorChangesAction.IGNORE_REFACTOR_CHANGES);
-		getCompareConfiguration();
+		ignoreRefactorChangesAction.setChecked(false);
+		if(getCompareConfiguration().getInmMergerResult()==null)
+			ignoreRefactorChangesAction.setEnabled(false);
+		else
+			ignoreRefactorChangesAction.setEnabled(true);
 		
 		toggleLineNumbersAction = new TextEditorPropertyAction(CompareMessages.TextMergeViewer_16, new MergeSourceViewer[] {
 				fLeft, fRight, fAncestor
@@ -3904,6 +3907,9 @@ public class TextMergeViewer extends ContentMergeViewer implements IAdaptable {
 //			fUseSplines= fPreferenceStore.getBoolean(ComparePreferencePage.USE_SPLINES);
 //			invalidateLines();
 
+		} else if (key.equals(IgnoreRefactorChangesAction.PREFERENCE_IGNORE_REFACTOR_CHANGES)) {
+			updateForRefac();
+			
 		} else if (key.equals(ComparePreferencePage.USE_SINGLE_LINE)) {
 			fUseSingleLine= fPreferenceStore.getBoolean(ComparePreferencePage.USE_SINGLE_LINE);
 //			fUseResolveUI= fUseSingleLine;
@@ -5214,6 +5220,23 @@ public class TextMergeViewer extends ContentMergeViewer implements IAdaptable {
 	
 	private boolean isIgnoreAncestor() {
 		return Utilities.getBoolean(getCompareConfiguration(), ICompareUIConstants.PROP_IGNORE_ANCESTOR, false);
+	}
+	
+	void updateForRefac(){
+		if (getControl().isDisposed())
+			return;
+		if(fMerger.toggleDiffValues()){
+			setForegroundColor(new RGB(255, 0, 0));
+		}
+		else
+			setForegroundColor(null);
+		//handleCompareInputChange();
+		//refresh();
+		updateStructure();
+		updateControls();		
+		updateVScrollBar();
+		updatePresentation();
+		
 	}
 	
 	/* package */ void update(boolean includeControls) {

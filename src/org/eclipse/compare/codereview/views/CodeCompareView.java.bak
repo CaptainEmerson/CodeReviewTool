@@ -280,13 +280,11 @@ public class CodeCompareView extends ViewPart {
 			String newInmProjectPath,
 			ArrayList<RenameChange> renameChangeRelationList) {
 		try {
-			char separator = Path.SEPARATOR;
 			IJavaProject javaProject = JavaCore.create(project);
 			IPackageFragment[] packages = javaProject.getPackageFragments();
 			String finalProjectPath = project.getLocation().toString();
-			/*oldProjectPath = finalProjectPath.replace("/", separator);
-			finalProjectPath = finalProjectPath.replace("/", separator);
-			newInmProjectPath = newInmProjectPath.replace("/", separator);*/
+			finalProjectPath = finalProjectPath.replace('/', '\\');
+			newInmProjectPath = newInmProjectPath.replace('/', '\\');
 			root = new TreeParent(javaProject.getElementName());
 			TreeParent pkgs[] = new TreeParent[packages.length];
 			int i = 0;
@@ -313,16 +311,16 @@ public class CodeCompareView extends ViewPart {
 							if (pkgInstance == null) {
 								String[] samePkgs = mypackage.getElementName()
 										.split("[.]");
-								String oldFilePath = oldProjectPath +separator + "src" +separator;
-								String inmFilePath = newInmProjectPath + separator
-										+ "src" + separator;
-								String newFilePath = finalProjectPath + separator
-										+ "src" + separator;
+								String oldFilePath = oldProjectPath + "\\src\\";
+								String inmFilePath = newInmProjectPath
+										+ "\\src\\";
+								String newFilePath = finalProjectPath
+										+ "\\src\\";
 
 								for (int o = 0; o < samePkgs.length; o++) {
-									oldFilePath += samePkgs[o] + separator;
-									inmFilePath += samePkgs[o] + separator;
-									newFilePath += samePkgs[o] + separator;
+									oldFilePath += samePkgs[o] + "\\";
+									inmFilePath += samePkgs[o] + "\\";
+									newFilePath += samePkgs[o] + "\\";
 								}
 
 								oldFilePath += unit.getElementName();
@@ -337,17 +335,19 @@ public class CodeCompareView extends ViewPart {
 										.split("[.]");
 								String[] newPkgs = pkgInstance.getNewText()
 										.split("[.]");
-								String oldFilePath = oldProjectPath + separator + "src" +separator;
-								String inmFilePath = newInmProjectPath+separator + "src" +separator;
-								String newFilePath = finalProjectPath+separator + "src" +separator;
+								String oldFilePath = oldProjectPath + "\\src\\";
+								String inmFilePath = newInmProjectPath
+										+ "\\src\\";
+								String newFilePath = finalProjectPath
+										+ "\\src\\";
 
 								for (int o = 0; o < oldPkgs.length; o++) {
-									oldFilePath += oldPkgs[o] + separator;
+									oldFilePath += oldPkgs[o] + "\\";
 								}
 
 								for (int n = 0; n < newPkgs.length; n++) {
-									inmFilePath += newPkgs[n] + separator;
-									newFilePath += newPkgs[n] + separator;
+									inmFilePath += newPkgs[n] + "\\";
+									newFilePath += newPkgs[n] + "\\";
 								}
 
 								oldFilePath += unit.getElementName();
@@ -364,19 +364,19 @@ public class CodeCompareView extends ViewPart {
 							String[] newPkgs = sourceInstance
 									.getNewPackageName().split("[.]");
 
-							String oldFilePath = oldProjectPath +separator + "src" +separator;
-							String inmFilePath = newInmProjectPath +separator + "src" +separator;
-							String newFilePath = finalProjectPath +separator + "src" +separator;
+							String oldFilePath = oldProjectPath + "\\src\\";
+							String inmFilePath = newInmProjectPath + "\\src\\";
+							String newFilePath = finalProjectPath + "\\src\\";
 
 							for (int o = 0; o < oldPkgs.length; o++) {
 								if (!oldPkgs[o].equals(""))
-									oldFilePath += oldPkgs[o] + separator;
+									oldFilePath += oldPkgs[o] + "\\";
 							}
 
 							for (int n = 0; n < newPkgs.length; n++) {
 								if (!newPkgs[n].equals("")) {
-									inmFilePath += newPkgs[n] + separator;
-									newFilePath += newPkgs[n] + separator;
+									inmFilePath += newPkgs[n] + "\\";
+									newFilePath += newPkgs[n] + "\\";
 								}
 							}
 
@@ -479,12 +479,7 @@ public class CodeCompareView extends ViewPart {
 				if (!(obj instanceof TreeParent)) {
 					if (obj instanceof TreeObject) {
 						TreeObject source = (TreeObject) obj;
-						String message = "";
-						if((new File(source.getOldFilePath())).exists()){
-							message = source.getOldFilePath() + " >> " + source.getCurrentFilePath();
-						}
-						else
-							message = " New File Added :: " + source.getCurrentFilePath();
+						String message = source.getOldFilePath() + " >> " + source.getCurrentFilePath();
 						showMessage(source.getName(), message);
 					}
 				}
@@ -586,10 +581,7 @@ public class CodeCompareView extends ViewPart {
 					workBenchPage1.bringToTop(editor1);
 			}
 		} else {
-			if(((Input) oldInput).getFile()== null)
-				inputOrig.getCompareConfiguration().setInmMergerResult(null);
-			else
-				inputOrig.getCompareConfiguration().setInmMergerResult(diff);
+			inputOrig.getCompareConfiguration().setInmMergerResult(diff);
 			CompareUI.openCompareEditor(inputOrig,
 					OpenStrategy.activateOnOpen());
 			// ((DiffNode)input.getCompareResult()).setLeft(inmInput);

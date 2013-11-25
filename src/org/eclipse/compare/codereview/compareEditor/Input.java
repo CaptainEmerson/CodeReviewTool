@@ -17,12 +17,21 @@ public class Input implements ITypedElement, IStreamContentAccessor {
 	File file;
 
 	public Input(File file) {
-		this.file = file;
-		this.fContent = RefactorUtils.readFileAsString(file);
+		if(file.exists()){
+			this.file = file;
+			this.fContent = RefactorUtils.readFileAsString(file);
+		}
+		else {
+			this.file = null;
+			this.fContent = "";
+		}
+		
 	}
 
 	public String getName() {
 		// TODO Auto-generated method stub
+		if(file == null)
+			return "New File Added";
 		return file.getName();
 	}
 
