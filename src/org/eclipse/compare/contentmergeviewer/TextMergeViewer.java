@@ -3736,7 +3736,7 @@ public class TextMergeViewer extends ContentMergeViewer implements IAdaptable {
 		fHandlerService.registerAction(showWhitespaceAction, ITextEditorActionDefinitionIds.SHOW_WHITESPACE_CHARACTERS);
 		
 		ignoreRefactorChangesAction = new IgnoreRefactorChangesAction(
-				new MergeSourceViewer[] {fLeft, fRight, fAncestor});
+				new MergeSourceViewer[] {fLeft, fRight, fAncestor}, this);
 		fHandlerService.registerAction(ignoreRefactorChangesAction, IgnoreRefactorChangesAction.IGNORE_REFACTOR_CHANGES);
 		ignoreRefactorChangesAction.setChecked(false);
 		if(getCompareConfiguration().getInmMergerResult()==null)
@@ -5222,7 +5222,7 @@ public class TextMergeViewer extends ContentMergeViewer implements IAdaptable {
 		return Utilities.getBoolean(getCompareConfiguration(), ICompareUIConstants.PROP_IGNORE_ANCESTOR, false);
 	}
 	
-	void updateForRefac(){
+	public void updateForRefac(){
 		if (getControl().isDisposed())
 			return;
 		if(fMerger.toggleDiffValues()){

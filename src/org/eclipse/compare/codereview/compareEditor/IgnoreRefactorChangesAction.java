@@ -15,6 +15,7 @@ import java.util.Iterator;
 import java.util.Map;
 
 import org.eclipse.compare.CompareConfiguration;
+import org.eclipse.compare.contentmergeviewer.TextMergeViewer;
 import org.eclipse.compare.internal.CompareMessages;
 import org.eclipse.compare.internal.MergeSourceViewer;
 import org.eclipse.compare.internal.TextEditorPropertyAction;
@@ -32,10 +33,12 @@ public class IgnoreRefactorChangesAction extends TextEditorPropertyAction {
 	public static final String IGNORE_REFACTOR_CHANGES = "org.eclipse.compare.ignoreRefactorChanges";
 	public static final String PREFERENCE_IGNORE_REFACTOR_CHANGES = "ignoreRefactorChanges";
 	private IPreferenceStore fStore = EditorsUI.getPreferenceStore();
+	private TextMergeViewer textMergeViewer;
 
-	public IgnoreRefactorChangesAction(MergeSourceViewer[] viewers) {
+	public IgnoreRefactorChangesAction(MergeSourceViewer[] viewers, TextMergeViewer textMergeViewer) {
 		super(CompareMessages.IgnoreRefactorChangesAction_0, viewers, PREFERENCE_IGNORE_REFACTOR_CHANGES);
-		synchronizeWithPreference();	
+		synchronizeWithPreference();
+		this.textMergeViewer = textMergeViewer;
 	}
 	
 	/*
@@ -72,6 +75,8 @@ public class IgnoreRefactorChangesAction extends TextEditorPropertyAction {
 		} else {
 			System.out.println("Don't Ignore Refactoring Changes");
 		}*/
+		if(textMergeViewer!=null)
+			textMergeViewer.updateForRefac();
 		return true;
 	}
 		

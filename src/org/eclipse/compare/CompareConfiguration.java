@@ -75,6 +75,10 @@ public class CompareConfiguration {
 	private static ImageDescriptor[] fgImages= new ImageDescriptor[16];
 	private static boolean fLeftIsLocal= true;
 
+	public static void setfLeftIsLocal(boolean fLeftIsLocal) {
+		CompareConfiguration.fLeftIsLocal = fLeftIsLocal;
+	}
+
 	static {
 		if (fLeftIsLocal) {
 			fgImages[Differencer.ADDITION]= CompareUIPlugin.getImageDescriptor("ovr16/del_ov.gif"); //$NON-NLS-1$

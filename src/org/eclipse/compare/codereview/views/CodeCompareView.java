@@ -557,7 +557,7 @@ public class CodeCompareView extends ViewPart {
 		IEditorPart editor = RefactorUtils.findReusableCompareEditor(input,
 				workBenchPage, new Class[] { ChangeCompareEditorInput.class });
 		
-		if (editor != null) { workBenchPage.closeEditor(editor, false); }
+		//if (editor != null) { workBenchPage.closeEditor(editor, false); }
 		 
 
 		CompareEditorInput inputOrig = createCompareEditorInput(oldInput,

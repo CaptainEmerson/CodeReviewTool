@@ -406,7 +406,6 @@ public class DocumentMerger {
 	public DocumentMerger(IDocumentMergerInput input) {
 		this.fInput = input;
 		fLeftIsLocal= Utilities.getBoolean(getCompareConfiguration(), "LEFT_IS_LOCAL", false); //$NON-NLS-1$
-		InmRefacMerger = getCompareConfiguration().getInmMergerResult();
 	}
 	
 	/**
@@ -584,6 +583,7 @@ public class DocumentMerger {
 		}
 		fAllDiffs = newAllDiffs;
 		fDefaultChangeDiffs = fChangeDiffs;
+		InmRefacMerger = getCompareConfiguration().getInmMergerResult();
 		if(InmRefacMerger!=null){
 			fRefacChangeDiffs = calculateNewChangedDiffsAfterRefac(fChangeDiffs, InmRefacMerger.changesIterator());
 		}

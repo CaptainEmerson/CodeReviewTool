@@ -65,7 +65,7 @@ public class ChangeCompareEditorInput extends CompareEditorInput {
 		ICompareInput input = createCompareInput();
 		getCompareConfiguration().setLeftEditable(false);
 		getCompareConfiguration().setRightEditable(false);
-		initLabels(input);
+		initLabels();
 		return input;
 	}
 
@@ -84,7 +84,7 @@ public class ChangeCompareEditorInput extends CompareEditorInput {
 		return input;*/
 	}
 
-	private void initLabels(ICompareInput input) {
+	private void initLabels() {
 		CompareConfiguration cc = getCompareConfiguration();
 		if (getLeft() != null) {
 			if(getLeft().getName().equals("New File Added"))

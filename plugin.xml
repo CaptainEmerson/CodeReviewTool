@@ -300,6 +300,7 @@
          </menu>
          <action
                class="org.eclipse.compare.codereview.ReviewAction"
+               enablesFor="1"
                id="runReview"
                label="%RunReviewAction.label"
                menubarPath="runReviewMenu/reviewGroup"

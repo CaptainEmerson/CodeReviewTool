@@ -26,9 +26,9 @@ import org.eclipse.jdt.launching.LibraryLocation;
 
 public class NewJavaProject {
 	
-	public static IProject createNewProject(String projectName, String baseProjDirPath){
+	public static IProject createNewProject(String projectName, String baseProjDirPath, String suffix){
 		
-		String inmProjectName = projectName.concat("_AfterRefac");
+		String inmProjectName = projectName.concat(suffix);
 		IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
 		String rootLoc = root.getLocation().toString();	
 

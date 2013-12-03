@@ -1,25 +1,13 @@
-/*******************************************************************************
- * Copyright (c) 2000, 2011 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
- *
- * Contributors:
- *     IBM Corporation - initial API and implementation
- *     Matt McCutchen (hashproduct+eclipse@gmail.com) - Bug 35390 Three-way compare cannot select (mis-selects) )ancestor resource
- *     Aleksandra Wozniak (aleksandra.k.wozniak@gmail.com) - Bug 239959
- *******************************************************************************/
 package org.eclipse.compare.codereview;
 
 import org.eclipse.compare.CompareConfiguration;
 import org.eclipse.compare.CompareUI;
+import org.eclipse.compare.ITypedElement;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.ui.IObjectActionDelegate;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
-
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -35,6 +23,7 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
 
@@ -48,11 +37,6 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-/*import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpression;
-import javax.xml.xpath.XPathFactory;*/
-
 import org.eclipse.compare.CompareConfiguration;
 import org.eclipse.compare.CompareUI;
 import org.eclipse.core.commands.AbstractHandler;
@@ -77,6 +61,7 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Cursor;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Shell;
@@ -100,7 +85,6 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
-/*import org.eclipse.ltk.internal.ui.refactoring.scripting.RefactoringScriptLocationControl;*/
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -117,8 +101,12 @@ import org.eclipse.compare.codereview.refactorChange.ApplyRefactoringScriptWizar
 import org.eclipse.compare.codereview.refactorChange.NewJavaProject;
 import org.eclipse.compare.codereview.refactorChange.RefactorUtils;
 import org.eclipse.compare.codereview.refactorChange.RefactoringHistoryWizard;
+import org.eclipse.compare.codereview.reviewinterface.RefactoringInfoHandler;
 import org.eclipse.compare.codereview.views.CodeCompareView;
+import org.eclipse.compare.codereview.compareEditor.ChangeResourceCompareEditorInput;
 import org.eclipse.compare.codereview.compareEditor.EditorInput;
+import org.eclipse.compare.structuremergeviewer.ICompareInput;
+import org.eclipse.compare.structuremergeviewer.ICompareInputChangeListener;
 
 
 public class ReviewAction extends BaseReviewAction implements IObjectActionDelegate {
@@ -133,6 +121,8 @@ public class ReviewAction extends BaseReviewAction implements IObjectActionDeleg
 	ArrayList<File> logFiles = null;
 	
 	Cursor busyCursor = null;
+	
+	RefactoringInfoHandler fnlRefactorInfo = null;
 
 	public void run(ISelection selection) {
 		if (selection instanceof IStructuredSelection) {
@@ -180,8 +170,8 @@ public class ReviewAction extends BaseReviewAction implements IObjectActionDeleg
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				}*/
-						
 
+				
 				if (finalPrj.isOpen()) {
 
 					try {
@@ -200,9 +190,12 @@ public class ReviewAction extends BaseReviewAction implements IObjectActionDeleg
 								
 								/* * Creating new project as the intermediate
 								 * version of the the base project*/
+								/*
+								final IProject oldProject = NewJavaProject
+										.createNewProject(finalPrj.getName(), baseProjDir, "_Temp");*/
 								 
 								final IProject newProject = NewJavaProject
-										.createNewProject(finalPrj.getName(), baseProjDir);
+										.createNewProject(finalPrj.getName(), baseProjDir, "_AfterRefac");
 								/*try {
 									newProject.setHidden(true);
 									newProject.close(monitor);
@@ -259,17 +252,24 @@ public class ReviewAction extends BaseReviewAction implements IObjectActionDeleg
 								
 								monitor.worked(50);
 								
-								/*IManualRefactoringInterface manInt = ServiceLocator.ResolveType
-										(IManualRefactoringInterface.class);
-										manInt.startRefactoringDetection(newProject, finalPrj, 
-										new IManualRefactoringCallback() {
-										public void callBack(Collection<IManualRefactoringInfo> results) {
-										// use results to hide manual refactoring
-										}
+								/*IManualRefactoringInterface manInt = ServiceLocator
+										.ResolveType(IManualRefactoringInterface.class);
+								manInt.startRefactoringDetection(newProject,
+										finalPrj, new IManualRefactoringCallback() {
+											
+											public void callBack(Collection<IManualRefactoringInfo> results) {
+												System.out
+														.println("Results");
+												// use results to hide manual refactoring
+												for (IManualRefactoringInfo res : results) {
+													System.out.println(res);
+												}
+												//assignValue(results);
+											}
 										});*/
 															
 								try {
-									Thread.sleep(500);
+									Thread.sleep(5000);
 								} catch (InterruptedException e) {
 									// TODO Auto-generated catch block
 									e.printStackTrace();
@@ -292,14 +292,15 @@ public class ReviewAction extends BaseReviewAction implements IObjectActionDeleg
 										IWorkspaceRoot root = workspace.getRoot();
 										try {
 											newProject.delete(false, false, monitor);
-											root.refreshLocal(0, monitor);
+											//oldProject.delete(false, false, monitor);
+											root.refreshLocal(IResource.DEPTH_INFINITE, monitor);
 										} catch (CoreException e) {
 											// TODO Auto-generated catch block
 											e.printStackTrace();
 										}
 										monitor.done();
 										
-										view = new CodeCompareView(finalPrj, baseProjDir, newInmProjectPath, renameChangeRelationList);
+										/*view = new CodeCompareView(finalPrj, baseProjDir, newInmProjectPath, renameChangeRelationList);
 										
 										IWorkbenchPage activePage = PlatformUI.getWorkbench()
 												.getActiveWorkbenchWindow().getActivePage();
@@ -311,8 +312,10 @@ public class ReviewAction extends BaseReviewAction implements IObjectActionDeleg
 												// TODO Auto-generated catch block
 												e.printStackTrace();
 											}
-										}
+										}*/
 										
+										CompareUI.openCompareEditor(new ChangeResourceCompareEditorInput(
+												finalPrj, baseProjDir, newInmProjectPath, renameChangeRelationList));
 										
 										/*IWorkbenchPage activePage = PlatformUI.getWorkbench()
 												.getActiveWorkbenchWindow()
@@ -331,9 +334,9 @@ public class ReviewAction extends BaseReviewAction implements IObjectActionDeleg
 											}
 										}*/
 										
-										/*File input1 = new File("D:/Study Time/Courses/SE/Project/runtime-EclipseApplication/Test_Base" + "/src/old/Source.java");
+										/*File input1 = new File("D:/Study Time/Courses/SE/Project/runtime-EclipseApplication/Test_Base" + "/src");
 										File input3 = new File(newInmProjectPath + "/src/newPkg/SourceNew1.java");
-										File input2 = new File(finalPrj.getLocation().toString() + "/src/newPkg/SourceNew1.java");
+										File input2 = new File(finalPrj.getLocation().toString() + "/src");
 										CompareUI.openCompareEditor(new EditorInput(
 												new CompareConfiguration(),input1,input2));
 										CompareUI.openCompareEditor(new EditorInput(
@@ -371,6 +374,13 @@ public class ReviewAction extends BaseReviewAction implements IObjectActionDeleg
 			}
 		}*/
 	}
+	
+	/*private void assignValue(
+			Collection<IManualRefactoringInfo> results) {
+		RefactoringInfoHandler refactorInfo = new RefactoringInfoHandler(results);
+		fnlRefactorInfo = refactorInfo;
+		
+	}*/
 
 	protected boolean isEnabled(ISelection selection) {
 		return true;

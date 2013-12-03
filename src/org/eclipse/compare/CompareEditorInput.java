@@ -182,11 +182,11 @@ public abstract class CompareEditorInput extends PlatformObject implements IEdit
 	private static final String COMPARE_EDITOR_IMAGE_NAME= "eview16/compare_view.gif"; //$NON-NLS-1$
 	private static Image fgTitleImage;
 	
-	private Splitter fComposite;
+	protected Splitter fComposite;
 	private CompareConfiguration fCompareConfiguration;
-	private CompareViewerPane fStructureInputPane;
-	private CompareViewerSwitchingPane fStructurePane1;
-	private CompareViewerSwitchingPane fStructurePane2;
+	protected CompareViewerPane fStructureInputPane;
+	protected CompareViewerSwitchingPane fStructurePane1;
+	protected CompareViewerSwitchingPane fStructurePane2;
 	private CompareViewerSwitchingPane fContentInputPane;
 	private CompareViewerPane fFocusPane;
 	private String fMessage;
@@ -271,7 +271,7 @@ public abstract class CompareEditorInput extends PlatformObject implements IEdit
 		configuration.setContainer(this);
 	}
 
-	private boolean structureCompareOnSingleClick() {
+	protected boolean structureCompareOnSingleClick() {
 		return fStructureCompareOnSingleClick;
 	}
 	
@@ -761,7 +761,7 @@ public abstract class CompareEditorInput extends PlatformObject implements IEdit
 		return false;
 	}
 
-	private boolean hasUnusableContentViewer() {
+	protected boolean hasUnusableContentViewer() {
 		return fContentInputPane.isEmpty() || fContentInputPane.getViewer() instanceof BinaryCompareViewer;
 	}
 	
@@ -769,7 +769,7 @@ public abstract class CompareEditorInput extends PlatformObject implements IEdit
 		return !(fStructureInputPane instanceof CompareViewerSwitchingPane);
 	}
 
-	private void feed1(final ISelection selection) {
+	protected void feed1(final ISelection selection) {
 		BusyIndicator.showWhile(fComposite.getDisplay(),
 			new Runnable() {
 				public void run() {
@@ -797,7 +797,7 @@ public abstract class CompareEditorInput extends PlatformObject implements IEdit
 		);
 	}
 	
-	private void feedDefault1(final ISelection selection) {
+	protected void feedDefault1(final ISelection selection) {
 		BusyIndicator.showWhile(fComposite.getDisplay(),
 			new Runnable() {
 				public void run() {
@@ -808,7 +808,7 @@ public abstract class CompareEditorInput extends PlatformObject implements IEdit
 		);
 	}
 	
-	private void feed2(final ISelection selection) {
+	protected void feed2(final ISelection selection) {
 		BusyIndicator.showWhile(fComposite.getDisplay(),
 			new Runnable() {
 				public void run() {
@@ -826,7 +826,7 @@ public abstract class CompareEditorInput extends PlatformObject implements IEdit
 		);
 	}
 	
-	private void feed3(final ISelection selection) {
+	protected void feed3(final ISelection selection) {
 		BusyIndicator.showWhile(fComposite.getDisplay(),
 			new Runnable() {
 				public void run() {
@@ -840,7 +840,7 @@ public abstract class CompareEditorInput extends PlatformObject implements IEdit
 		
 	}
 	
-	private void internalSetContentPaneInput(Object input) {
+	protected void internalSetContentPaneInput(Object input) {
 		Object oldInput = fContentInputPane.getInput();
 		fContentInputPane.setInput(input);
 		if (fOutlineView != null)
@@ -855,7 +855,7 @@ public abstract class CompareEditorInput extends PlatformObject implements IEdit
 	 * @param selection the selection
 	 * @return the first element of the selection, or <code>null</code>
 	 */
-	private static Object getElement(ISelection selection) {
+	protected static Object getElement(ISelection selection) {
 		if (selection instanceof IStructuredSelection) {
 			IStructuredSelection ss= (IStructuredSelection) selection;
 			if (ss.size() == 1)
